@@ -8,7 +8,8 @@ import edu.princeton.cs.algs4.StdOut;
 import edu.princeton.cs.algs4.WeightedQuickUnionUF;
 
 public class Percolation {
-    private final WeightedQuickUnionUF weightedQuickUnionUF;
+    private final WeightedQuickUnionUF uf;
+    private final WeightedQuickUnionUF ufBackWasher;
     private final int size;
     private boolean[] sites;
     private int openSites;
@@ -27,7 +28,8 @@ public class Percolation {
             sites[i] = false;
         }
 
-        weightedQuickUnionUF = new WeightedQuickUnionUF(n * n + 2);
+        uf = new WeightedQuickUnionUF(n * n + 2);
+        ufBackWasher = new WeightedQuickUnionUF(n * n + 2);
     }
 
     public void open(int row, int col) {
@@ -38,27 +40,29 @@ public class Percolation {
             ++openSites;
 
             if (row - 1 == 0) {
-                weightedQuickUnionUF.union(id, 0);
+                doubleUnion(id, 0);
             }
             else if (isOpen(row - 1, col)) {
-                weightedQuickUnionUF.union(id, xyTo1D(row - 1, col));
+                doubleUnion(id, xyTo1D(row - 1, col));
             }
 
             if (col - 1 > 0 && isOpen(row, col - 1)) {
-                weightedQuickUnionUF.union(id, xyTo1D(row, col - 1));
+                doubleUnion(id, xyTo1D(row, col - 1));
             }
 
             if (col + 1 <= size && isOpen(row, col + 1)) {
-                weightedQuickUnionUF.union(id, xyTo1D(row, col + 1));
+                doubleUnion(id, xyTo1D(row, col + 1));
             }
 
             if (row == size) {
-                if (isFull(row, col)) {
-                    weightedQuickUnionUF.union(id, size * size + 1);
-                }
+                ufBackWasher.union(id, size * size + 1);
             }
             else if (isOpen(row + 1, col)) {
-                weightedQuickUnionUF.union(id, xyTo1D(row + 1, col));
+                doubleUnion(id, xyTo1D(row + 1, col));
+            }
+
+            if (uf.connected(0, id) && ufBackWasher.connected(id, size * size + 1)) {
+                uf.union(id, size * size + 1);
             }
         }
     }
@@ -68,7 +72,7 @@ public class Percolation {
     }
 
     public boolean isFull(int row, int col) {
-        return weightedQuickUnionUF.connected(0, xyTo1D(row, col));
+        return uf.connected(0, xyTo1D(row, col));
     }
 
     public int numberOfOpenSites() {
@@ -76,7 +80,7 @@ public class Percolation {
     }
 
     public boolean percolates() {
-        return weightedQuickUnionUF.connected(0, size * size + 1);
+        return uf.connected(0, size * size + 1);
     }
 
     public static void main(String[] args) {
@@ -95,6 +99,11 @@ public class Percolation {
 
 
         StdOut.println(perc.isFull(3, 1));
+    }
+
+    private void doubleUnion(int x, int y) {
+        uf.union(x, y);
+        ufBackWasher.union(x, y);
     }
 
     private int xyTo1D(int x, int y) {
