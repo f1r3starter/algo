@@ -1,7 +1,7 @@
 /* *****************************************************************************
  *  Name: Andrey
- *  Date:
- *  Description:
+ *  Date: 2019.06.06
+ *  Description: Percolation 100% solution
  **************************************************************************** */
 
 import edu.princeton.cs.algs4.StdOut;
